@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#201d1b">
+  <title>TM Agenda | Painel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f3eee8;--paper:#fffdf9;--ink:#201d1b;--muted:#756c66;--line:rgba(32,29,27,.12);
+      --accent:#b98b6d;--dark:#201d1b;--ok:#47735b;--danger:#a54c45;--warn:#9b722e;
+      --shadow:0 18px 55px rgba(32,29,27,.09);--radius:24px;--max:1180px
+    }
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif}
+    button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+    .container{width:min(calc(100% - 28px),var(--max));margin:auto}
+    .login-wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
+    .login-card{width:min(100%,440px);padding:34px;border-radius:28px;background:var(--paper);box-shadow:var(--shadow)}
+    .mark{width:52px;height:52px;display:grid;place-items:center;border-radius:50%;background:var(--dark);color:white;font-family:"DM Serif Display",serif;margin-bottom:28px}
+    h1,h2,h3{font-family:"DM Serif Display",serif;font-weight:400}
+    .login-card h1{font-size:2.8rem;line-height:.95;margin:0 0 10px}.muted{color:var(--muted)}
+    .field{display:flex;flex-direction:column;gap:7px;margin-top:14px}.field label{font-size:.75rem;font-weight:800}
+    input,select,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:white;outline:none}
+    input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(185,139,109,.1)}
+    textarea{min-height:80px;resize:vertical}
+    .btn{min-height:46px;padding:0 17px;border:1px solid var(--dark);border-radius:999px;background:var(--dark);color:white;font-weight:800}
+    .btn.secondary{background:transparent;color:var(--ink);border-color:var(--line)}.btn.danger{background:var(--danger);border-color:var(--danger)}
+    .btn.small{min-height:36px;padding:0 12px;font-size:.72rem}.btn:disabled{opacity:.45;cursor:not-allowed}
+    .login-card .btn{width:100%;margin-top:20px}
+    .demo-note{margin-top:16px;padding:12px;border-radius:12px;background:#f4dfad;color:#5b4720;font-size:.75rem}
+    #app{display:none}
+    .topbar{background:var(--dark);color:white}.nav{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:800}.brand .mark{width:38px;height:38px;margin:0;background:white;color:var(--dark)}
+    .nav-actions{display:flex;gap:8px}.nav-actions .btn{border-color:rgba(255,255,255,.2)}.nav-actions .secondary{color:white}
+    main{padding:34px 0 80px}
+    .head{display:flex;justify-content:space-between;gap:25px;align-items:end;margin-bottom:26px}
+    .eyebrow{margin:0 0 5px;color:var(--accent);font-size:.7rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+    .head h1{font-size:clamp(2.6rem,5vw,4.8rem);line-height:.9;margin:0}.head p{margin:8px 0 0;color:var(--muted);font-size:.85rem}
+    .date-nav{display:flex;align-items:center;gap:8px}.date-nav input{width:auto;background:var(--paper)}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+    .stat{padding:20px;border:1px solid var(--line);border-radius:18px;background:var(--paper)}
+    .stat small{display:block;color:var(--muted);font-size:.66rem;text-transform:uppercase;letter-spacing:.09em}
+    .stat strong{display:block;margin-top:6px;font-size:1.5rem}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
+    .card{border:1px solid var(--line);border-radius:var(--radius);background:var(--paper);box-shadow:var(--shadow)}
+    .card-head{padding:22px 22px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;border-bottom:1px solid var(--line)}
+    .card-head h2{margin:0;font-size:1.8rem}.card-head span{color:var(--muted);font-size:.76rem}
+    .schedule{padding:8px 18px 18px}
+    .slot-row{display:grid;grid-template-columns:72px 1fr auto;gap:14px;align-items:center;padding:15px 4px;border-bottom:1px solid var(--line)}
+    .slot-row:last-child{border:0}.time{font-weight:800}
+    .appointment strong{display:block;font-size:.9rem}.appointment span{display:block;margin-top:3px;color:var(--muted);font-size:.75rem}
+    .free{color:var(--muted);font-size:.8rem}.blocked{color:var(--warn);font-weight:800;font-size:.8rem}
+    .actions-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+    .pill.confirmed{background:#e7efe9;color:var(--ok)}.pill.completed{background:#e8e6ef;color:#5e5878}.pill.cancelled{background:#f3e3e1;color:var(--danger)}
+    .side{display:grid;gap:16px}.side-card{padding:22px}.side-card h3{font-size:1.35rem;margin:0 0 10px}.side-card p{font-size:.78rem;color:var(--muted);margin:0 0 15px}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.form-row .full{grid-column:1/-1}
+    .mini-field{display:flex;flex-direction:column;gap:5px;margin-top:10px}.mini-field label{font-size:.68rem;font-weight:800}
+    .empty{padding:36px;text-align:center;color:var(--muted);font-size:.85rem}
+    .loading{padding:30px;text-align:center;color:var(--muted)}
+    .toast{position:fixed;z-index:99;left:50%;bottom:20px;transform:translate(-50%,20px);width:min(calc(100% - 28px),520px);padding:14px;border-radius:14px;background:var(--dark);color:white;text-align:center;font-size:.8rem;opacity:0;pointer-events:none;transition:.2s}
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+
+
+    .automation-list{display:grid;gap:9px;margin-top:14px}
+    .automation-item{
+      display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)
+    }
+    .automation-item:last-child{border-bottom:0}
+    .automation-icon{
+      flex:0 0 34px;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;
+      background:var(--bg);color:var(--accent);font-size:.72rem;font-weight:800
+    }
+    .automation-item strong{display:block;font-size:.78rem}
+    .automation-item small{display:block;margin-top:2px;color:var(--muted);font-size:.68rem}
+    .automation-status{
+      margin-top:14px;padding:11px 12px;display:flex;align-items:center;gap:9px;
+      border-radius:13px;background:var(--bg);color:var(--muted);font-size:.7rem;font-weight:700
+    }
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+    .modal-backdrop{
+      position:fixed;inset:0;z-index:120;display:none;place-items:center;
+      padding:18px;background:rgba(32,29,27,.44);backdrop-filter:blur(7px)
+    }
+    .modal-backdrop.show{display:grid}
+    .modal{
+      width:min(100%,520px);padding:28px;border-radius:26px;background:var(--paper);
+      box-shadow:0 24px 80px rgba(32,29,27,.24)
+    }
+    .modal .eyebrow{margin-bottom:7px}
+    .modal h2{margin:0 0 8px;font-size:2.2rem;line-height:.98}
+    .modal > p{margin:0;color:var(--muted);font-size:.84rem}
+    .repeat-options{
+      display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:22px
+    }
+    .repeat-option{
+      min-height:48px;padding:10px 12px;border:1px solid var(--line);
+      border-radius:15px;background:white;color:var(--ink);font-weight:800
+    }
+    .repeat-option:hover,.repeat-option.active{
+      border-color:var(--dark);background:var(--dark);color:white
+    }
+    .repeat-option.full{grid-column:1/-1}
+    .custom-until{display:none;margin-top:14px}
+    .custom-until.show{display:block}
+    .modal-summary{
+      margin-top:18px;padding:14px 16px;border-radius:15px;background:var(--bg);
+      color:var(--muted);font-size:.78rem
+    }
+    .modal-summary strong{color:var(--ink)}
+    .modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:22px}
+
+    @media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.side{grid-template-columns:1fr 1fr}}
+    @media(max-width:620px){.head{align-items:flex-start;flex-direction:column}.date-nav{width:100%}.date-nav input{flex:1}.stats{grid-template-columns:1fr 1fr}.side{grid-template-columns:1fr}.slot-row{grid-template-columns:58px 1fr}.actions-row{grid-column:1/-1;justify-content:flex-start;padding-left:72px}.nav .brand span:last-child{display:none}}
+  </style>
+</head>
+<body>
+  <section class="login-wrap" id="login">
+    <div class="login-card">
+      <div class="mark">TM</div>
+      <p class="eyebrow">Área da Thalita</p>
+      <h1>TM Agenda</h1>
+      <p class="muted">Entre para visualizar, bloquear e gerenciar os horários.</p>
+
+      <div id="liveLogin">
+        <div class="field"><label for="email">E-mail</label><input id="email" type="email" autocomplete="username" placeholder="seu@email.com"></div>
+        <div class="field"><label for="password">Senha</label><input id="password" type="password" autocomplete="current-password" placeholder="Sua senha"></div>
+        <button class="btn" id="loginButton">Entrar</button>
+      </div>
+
+      <div id="demoLogin" style="display:none">
+        <div class="demo-note">Modo demonstração: o painel abaixo usa clientes fictícias e não grava nada.</div>
+        <button class="btn" id="demoButton">Abrir painel de demonstração</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="app">
+    <header class="topbar">
+      <div class="container nav">
+        <a class="brand" href="index.html"><span class="mark">TM</span><span>TM Agenda</span></a>
+        <div class="nav-actions">
+          <a class="btn secondary small" href="agendar.html" target="_blank">Ver agendamento ↗</a>
+          <button class="btn secondary small" id="logoutButton">Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+        <div class="head">
+          <div>
+            <p class="eyebrow">Painel administrativo</p>
+            <h1>Agenda da Thalita.</h1>
+            <p id="dateLabel">—</p>
+          </div>
+          <div class="date-nav">
+            <button class="btn secondary small" id="prevDay">←</button>
+            <input type="date" id="datePicker">
+            <button class="btn secondary small" id="nextDay">→</button>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><small>Agendados no dia</small><strong id="statBooked">0</strong></div>
+          <div class="stat"><small>Horários livres</small><strong id="statFree">0</strong></div>
+          <div class="stat"><small>Bloqueados</small><strong id="statBlocked">0</strong></div>
+          <div class="stat"><small>Previsto no dia</small><strong id="statRevenue">R$ 0</strong></div>
+          <div class="stat"><small>Previsto no mês</small><strong id="statMonthForecast">R$ 0</strong></div>
+          <div class="stat"><small>Realizado no mês</small><strong id="statMonthCompleted">R$ 0</strong></div>
+        </div>
+
+        <div class="layout">
+          <section class="card">
+            <div class="card-head"><div><h2>Horários</h2><span id="scheduleHint">—</span></div><span id="modeBadge"></span></div>
+            <div class="schedule" id="schedule"></div>
+          </section>
+
+          <aside class="side">
+            <section class="card side-card">
+              <h3>Novo agendamento</h3>
+              <p>Para marcar manualmente uma cliente.</p>
+              <div class="mini-field"><label>Procedimento</label><select id="manualService"></select></div>
+              <div class="form-row">
+                <div class="mini-field"><label>Horário</label><select id="manualTime"></select></div>
+                <div class="mini-field"><label>Nome</label><input id="manualName" placeholder="Cliente"></div>
+                <div class="mini-field full"><label>WhatsApp</label><input id="manualPhone" inputmode="tel" placeholder="21999999999"></div>
+                <div class="mini-field full"><label>Observação</label><textarea id="manualNotes" placeholder="Opcional"></textarea></div>
+              </div>
+              <button class="btn" style="width:100%;margin-top:14px" id="manualCreate">Adicionar</button>
+            </section>
+
+            <section class="card side-card">
+              <h3>Bloquear o dia</h3>
+              <p>Use quando a Thalita não for atender em nenhuma faixa desse dia.</p>
+              <button class="btn secondary" style="width:100%" id="blockDay">Bloquear dia inteiro</button>
+            </section>
+
+            <section class="card side-card">
+              <h3>Mensagens automáticas</h3>
+              <p>O sistema prepara e envia as mensagens quando a integração oficial do WhatsApp estiver conectada.</p>
+
+              <div class="automation-list">
+                <div class="automation-item">
+                  <span class="automation-icon">✓</span>
+                  <div><strong>Confirmação</strong><small>Logo após o agendamento</small></div>
+                </div>
+                <div class="automation-item">
+                  <span class="automation-icon">15</span>
+                  <div><strong>Lembrete de manutenção</strong><small>15 dias após atendimento concluído</small></div>
+                </div>
+                <div class="automation-item">
+                  <span class="automation-icon">30</span>
+                  <div><strong>Cliente sumida</strong><small>30 dias sem novo agendamento</small></div>
+                </div>
+              </div>
+
+              <div class="automation-status" id="automationStatus">
+                <span class="status-dot"></span>
+                Preparado para integração WhatsApp
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
+    </main>
+  </div>
+
+
+  <div class="modal-backdrop" id="blockModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="blockModalTitle">
+      <p class="eyebrow">Bloquear horário</p>
+      <h2 id="blockModalTitle">Repetir este bloqueio?</h2>
+      <p id="blockModalText">Escolha por quanto tempo o mesmo horário deve ficar indisponível.</p>
+
+      <div class="repeat-options" id="repeatOptions">
+        <button type="button" class="repeat-option active" data-repeat-days="0">Só este dia</button>
+        <button type="button" class="repeat-option" data-repeat-days="7">Próximos 7 dias</button>
+        <button type="button" class="repeat-option" data-repeat-days="14">Próximos 14 dias</button>
+        <button type="button" class="repeat-option" data-repeat-days="30">Próximos 30 dias</button>
+        <button type="button" class="repeat-option full" data-repeat-days="custom">Até uma data específica</button>
+      </div>
+
+      <div class="custom-until" id="customUntil">
+        <div class="mini-field">
+          <label for="blockUntilDate">Bloquear até</label>
+          <input type="date" id="blockUntilDate">
+        </div>
+      </div>
+
+      <div class="modal-summary" id="blockSummary">
+        Será bloqueado <strong>somente este horário neste dia</strong>.
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="cancelBlockModal">Cancelar</button>
+        <button type="button" class="btn" id="confirmBlockModal">Confirmar bloqueio</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="config.js"></script>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    const cfg=window.TM_CONFIG||{};
+    const live=/^https:\/\/.+\.supabase\.co$/.test(cfg.SUPABASE_URL||"") &&
+      cfg.SUPABASE_ANON_KEY && !cfg.SUPABASE_ANON_KEY.includes("COLE_AQUI");
+    const db=live?createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY):null;
+
+    const fallbackServices = [
+      {code:"classico",name:"Clássico",category:"Colocação",price:145,sort_order:10},
+      {code:"brasileiro-light",name:"Brasileiro Light",category:"Colocação",price:145,sort_order:20},
+      {code:"volume-brasileiro",name:"Volume Brasileiro",category:"Colocação",price:155,sort_order:30},
+      {code:"volume-5d",name:"Volume 5D",category:"Colocação",price:165,sort_order:40},
+      {code:"fox-eyes",name:"Fox Eyes",category:"Colocação",price:165,sort_order:50},
+      {code:"cilios-marrom",name:"Cílios Marrom",category:"Colocação",price:165,sort_order:60},
+      {code:"manutencao-classico",name:"Manutenção · Clássico",category:"Manutenção",price:105,sort_order:110},
+      {code:"manutencao-brasileiro-light",name:"Manutenção · Brasileiro Light",category:"Manutenção",price:105,sort_order:120},
+      {code:"manutencao-volume-brasileiro",name:"Manutenção · Volume Brasileiro",category:"Manutenção",price:110,sort_order:130},
+      {code:"manutencao-volume-5d",name:"Manutenção · Volume 5D",category:"Manutenção",price:125,sort_order:140},
+      {code:"manutencao-fox-eyes",name:"Manutenção · Fox Eyes",category:"Manutenção",price:125,sort_order:150},
+      {code:"manutencao-cilios-marrom",name:"Manutenção · Cílios Marrom",category:"Manutenção",price:125,sort_order:160},
+      {code:"remocao-quimica",name:"Remoção química",category:"Outros",price:50,sort_order:200}
+    ];
+
+    let services=[], currentDate="", appointments=[], blocks=[], monthAppointments=[];
+    let pendingBlockTime=null, repeatDays=0;
+    const $=s=>document.querySelector(s);
+    const money=v=>Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+    function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+    function parse(iso){const [y,m,d]=iso.split("-").map(Number);return new Date(y,m-1,d)}
+    function slotsFor(isoDate){const day=parse(isoDate).getDay();if(day===0)return[];if(day===6)return["09:30","11:00","13:30"];return["08:00","09:30","13:00","14:30","16:00"]}
+
+    function monthBounds(isoDate){
+      const d=parse(isoDate);
+      const start=new Date(d.getFullYear(),d.getMonth(),1);
+      const end=new Date(d.getFullYear(),d.getMonth()+1,1);
+      return {start:iso(start),end:iso(end)};
+    }
+
+    function demoMonthAppointments(){
+      const today=new Date();
+      const y=today.getFullYear(),m=today.getMonth();
+      const svc=(code)=>services.find(s=>s.code===code)||fallbackServices[0];
+      return [
+        {status:"completed",appointment_date:iso(new Date(y,m,3)),services:svc("classico")},
+        {status:"completed",appointment_date:iso(new Date(y,m,8)),services:svc("volume-brasileiro")},
+        {status:"completed",appointment_date:iso(new Date(y,m,12)),services:svc("cilios-marrom")},
+        {status:"confirmed",appointment_date:iso(new Date(y,m,22)),services:svc("volume-5d")},
+        {status:"confirmed",appointment_date:iso(new Date(y,m,27)),services:svc("fox-eyes")}
+      ];
+    }
+
+    function dateLabel(isoDate){return parse(isoDate).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}
+    function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove("show"),3300)}
+    function formatPhone(p){const d=(p||"").replace(/\D/g,"");if(d.length===11)return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;return p||""}
+    function wa(phone){return `https://wa.me/55${(phone||"").replace(/\D/g,"").replace(/^55/,"")}`}
+
+    function addDays(isoDate, days){
+      const d=parse(isoDate); d.setDate(d.getDate()+days); return iso(d);
+    }
+
+    function dateRangeInclusive(startIso,endIso){
+      const out=[], cur=parse(startIso), end=parse(endIso);
+      while(cur<=end){ out.push(iso(cur)); cur.setDate(cur.getDate()+1); }
+      return out;
+    }
+
+    function validDatesForTime(startIso,endIso,time){
+      return dateRangeInclusive(startIso,endIso).filter(d=>slotsFor(d).includes(time));
+    }
+
+    function openBlockModal(time){
+      pendingBlockTime=time;
+      repeatDays=0;
+      document.querySelectorAll(".repeat-option").forEach(b=>b.classList.toggle("active",b.dataset.repeatDays==="0"));
+      $("#customUntil").classList.remove("show");
+      $("#blockUntilDate").value="";
+      $("#blockUntilDate").min=currentDate;
+      $("#blockModalText").textContent=`O horário de ${time} será bloqueado. Quer repetir esse bloqueio em outros dias?`;
+      updateBlockSummary();
+      $("#blockModal").classList.add("show");
+      $("#blockModal").setAttribute("aria-hidden","false");
+    }
+
+    function closeBlockModal(){
+      $("#blockModal").classList.remove("show");
+      $("#blockModal").setAttribute("aria-hidden","true");
+      pendingBlockTime=null;
+      repeatDays=0;
+    }
+
+    function getBlockEndDate(){
+      if(repeatDays==="custom"){
+        return $("#blockUntilDate").value || currentDate;
+      }
+      return addDays(currentDate, Number(repeatDays || 0));
+    }
+
+    function updateBlockSummary(){
+      if(!pendingBlockTime) return;
+      const end=getBlockEndDate();
+      const dates=validDatesForTime(currentDate,end,pendingBlockTime);
+      if(repeatDays===0 || repeatDays==="0"){
+        $("#blockSummary").innerHTML=`Será bloqueado <strong>${pendingBlockTime} em ${dateLabel(currentDate)}</strong>.`;
+        return;
+      }
+      const label = repeatDays==="custom"
+        ? `até ${end.split("-").reverse().join("/")}`
+        : `pelos próximos ${repeatDays} dias`;
+      $("#blockSummary").innerHTML=
+        `O horário <strong>${pendingBlockTime}</strong> será bloqueado ${label}, somente nos dias em que ele existe na agenda. `+
+        `<strong>${dates.length} ${dates.length===1?"dia será afetado":"dias serão afetados"}</strong>.`;
+    }
+
+    async function applyRecurringBlock(){
+      if(!pendingBlockTime) return;
+      if(repeatDays==="custom" && !$("#blockUntilDate").value){
+        toast("Escolha a data final do bloqueio."); return;
+      }
+
+      const end=getBlockEndDate();
+      if(parse(end)<parse(currentDate)){ toast("A data final não pode ser anterior ao dia selecionado."); return; }
+
+      const dates=validDatesForTime(currentDate,end,pendingBlockTime);
+      if(!dates.length){ toast("Não há dias válidos para esse horário no período escolhido."); return; }
+
+      $("#confirmBlockModal").disabled=true;
+
+      if(!live){
+        for(const d of dates){
+          const exists = blocks.some(b=>b.blocked_date===d && (b.appointment_time||"").slice(0,5)===pendingBlockTime);
+          if(!exists){
+            blocks.push({id:`d${Date.now()}-${d}`,blocked_date:d,appointment_time:`${pendingBlockTime}:00`,reason:"Bloqueio recorrente"});
+          }
+        }
+        // No modo demo a tela só mostra o dia atual; recarrega os blocos do dia atual.
+        blocks = blocks.filter(b=>b.blocked_date===currentDate);
+        closeBlockModal(); render(); toast(`Bloqueio simulado em ${dates.length} dia(s).`);
+        $("#confirmBlockModal").disabled=false;
+        return;
+      }
+
+      const rows = dates.map(d=>({
+        blocked_date:d,
+        appointment_time:pendingBlockTime,
+        reason: dates.length>1 ? "Bloqueio recorrente pela Thalita" : "Bloqueado pela Thalita"
+      }));
+
+      // Evita conflito com blocos já existentes consultando antes.
+      const {data:existing,error:existingError}=await db
+        .from("blocked_slots")
+        .select("blocked_date,appointment_time")
+        .gte("blocked_date",currentDate)
+        .lte("blocked_date",end);
+
+      if(existingError){
+        $("#confirmBlockModal").disabled=false;
+        toast("Não foi possível verificar os bloqueios existentes."); return;
+      }
+
+      const existingKeys=new Set((existing||[]).map(b=>`${b.blocked_date}|${(b.appointment_time||"").slice(0,5)}`));
+      const insertRows=rows.filter(r=>!existingKeys.has(`${r.blocked_date}|${r.appointment_time}`));
+
+      if(insertRows.length){
+        const {error}=await db.from("blocked_slots").insert(insertRows);
+        if(error){
+          $("#confirmBlockModal").disabled=false;
+          toast(error.message || "Não foi possível bloquear os horários."); return;
+        }
+      }
+
+      closeBlockModal();
+      $("#confirmBlockModal").disabled=false;
+      await refresh();
+      toast(`${dates.length} dia(s) considerados. ${insertRows.length} novo(s) bloqueio(s) criado(s).`);
+    }
+
+    function showApp(){ $("#login").style.display="none";$("#app").style.display="block";initApp(); }
+
+    $("#liveLogin").style.display=live?"block":"none";
+    $("#demoLogin").style.display=live?"none":"block";
+
+    async function checkSession(){
+      if(!live)return;
+      const {data}=await db.auth.getSession();
+      if(data.session) showApp();
+    }
+
+    $("#loginButton").addEventListener("click",async()=>{
+      const email=$("#email").value.trim(), password=$("#password").value;
+      if(!email||!password){toast("Informe e-mail e senha.");return}
+      $("#loginButton").disabled=true;
+      const {error}=await db.auth.signInWithPassword({email,password});
+      $("#loginButton").disabled=false;
+      if(error){toast("Não foi possível entrar. Confira e-mail e senha.");return}
+      showApp();
+    });
+    $("#demoButton").addEventListener("click",showApp);
+    $("#logoutButton").addEventListener("click",async()=>{
+      if(live)await db.auth.signOut();
+      location.reload();
+    });
+
+    async function initApp(){
+      currentDate=iso(new Date());
+      $("#datePicker").value=currentDate;
+      $("#modeBadge").textContent=live?"AO VIVO":"DEMO";
+      await loadServices();
+      await refresh();
+    }
+
+    async function loadServices(){
+      if(live){
+        const {data,error}=await db.from("services").select("code,name,category,price,sort_order").eq("active",true).order("sort_order");
+        services=error?fallbackServices:data;
+      }else services=fallbackServices;
+      $("#manualService").innerHTML=services.map(s=>`<option value="${s.code}">${s.name} · ${money(s.price)}</option>`).join("");
+    }
+
+    async function refresh(){
+      $("#datePicker").value=currentDate;
+      $("#dateLabel").textContent=dateLabel(currentDate);
+      const times=slotsFor(currentDate);
+      $("#scheduleHint").textContent=times.length?`${times.length} horários previstos neste dia`:"Sem atendimento neste dia";
+      $("#manualTime").innerHTML=times.map(t=>`<option value="${t}">${t}</option>`).join("");
+      if(live){
+        const mb=monthBounds(currentDate);
+        const [{data:a,error:ae},{data:b,error:be},{data:m,error:me}] = await Promise.all([
+          db.from("appointments")
+            .select("id,appointment_date,appointment_time,client_name,client_phone,notes,status,service_id,services(code,name,price)")
+            .eq("appointment_date",currentDate).neq("status","cancelled").order("appointment_time"),
+          db.from("blocked_slots").select("id,blocked_date,appointment_time,reason").eq("blocked_date",currentDate),
+          db.from("appointments")
+            .select("id,appointment_date,status,services(code,name,price)")
+            .gte("appointment_date",mb.start).lt("appointment_date",mb.end).neq("status","cancelled")
+        ]);
+        if(ae||be||me){toast("Erro ao carregar agenda.");console.error(ae,be,me);return}
+        appointments=a||[]; blocks=b||[]; monthAppointments=m||[];
+      }else{
+        appointments=demoAppointments(currentDate);
+        blocks=[];
+        monthAppointments=demoMonthAppointments();
+      }
+      render();
+    }
+
+    function demoAppointments(date){
+      const today=iso(new Date());
+      if(date!==today)return[];
+      const s1=services.find(s=>s.code==="volume-brasileiro")||fallbackServices[2];
+      const s2=services.find(s=>s.code==="cilios-marrom")||fallbackServices[5];
+      return [
+        {id:"demo1",appointment_time:"09:30:00",client_name:"Mariana Souza",client_phone:"21987654321",notes:"",status:"confirmed",services:s1},
+        {id:"demo2",appointment_time:"14:30:00",client_name:"Camila Rocha",client_phone:"21991234567",notes:"Primeira vez",status:"confirmed",services:s2}
+      ];
+    }
+
+    function findBlock(t){return blocks.find(b=>b.appointment_time===null || (b.appointment_time||"").slice(0,5)===t)}
+    function findAppointment(t){return appointments.find(a=>(a.appointment_time||"").slice(0,5)===t && a.status!=="cancelled")}
+
+    function render(){
+      const times=slotsFor(currentDate), el=$("#schedule");
+      if(!times.length){el.innerHTML=`<div class="empty">Domingo sem atendimento.</div>`;updateStats(times);return}
+      el.innerHTML="";
+      times.forEach(t=>{
+        const a=findAppointment(t), b=findBlock(t);
+        const row=document.createElement("div");row.className="slot-row";
+        const left=`<div class="time">${t}</div>`;
+        let middle="",actions="";
+        if(a){
+          middle=`<div class="appointment"><strong>${a.client_name} <span class="pill ${a.status}">${a.status==="completed"?"concluído":"confirmado"}</span></strong><span>${a.services?.name||"Procedimento"} · ${money(a.services?.price||0)}${a.notes?` · ${a.notes}`:""}</span></div>`;
+          actions=`<div class="actions-row">
+            <a class="btn secondary small" href="${wa(a.client_phone)}" target="_blank">WhatsApp</a>
+            ${a.status!=="completed"?`<button class="btn secondary small" data-complete="${a.id}">Concluir</button>`:""}
+            <button class="btn secondary small" data-cancel="${a.id}">Cancelar</button>
+          </div>`;
+        }else if(b){
+          middle=`<div class="blocked">Horário bloqueado${b.reason?` · ${b.reason}`:""}</div>`;
+          actions=`<div class="actions-row"><button class="btn secondary small" data-unblock="${b.id}">Liberar</button></div>`;
+        }else{
+          middle=`<div class="free">Livre</div>`;
+          actions=`<div class="actions-row"><button class="btn secondary small" data-block="${t}">Bloquear</button></div>`;
+        }
+        row.innerHTML=left+middle+actions;el.appendChild(row);
+      });
+
+      el.querySelectorAll("[data-complete]").forEach(b=>b.onclick=()=>updateStatus(b.dataset.complete,"completed"));
+      el.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=()=>updateStatus(b.dataset.cancel,"cancelled"));
+      el.querySelectorAll("[data-block]").forEach(b=>b.onclick=()=>openBlockModal(b.dataset.block));
+      el.querySelectorAll("[data-unblock]").forEach(b=>b.onclick=()=>unblock(b.dataset.unblock));
+      updateStats(times);
+    }
+
+    function updateStats(times){
+      const booked=appointments.filter(a=>a.status==="confirmed"||a.status==="completed");
+      const fullDay=blocks.some(b=>b.appointment_time===null);
+      const blockedCount=fullDay?times.length:blocks.filter(b=>b.appointment_time!==null).length;
+      const occupiedTimes=new Set(booked.map(a=>(a.appointment_time||"").slice(0,5)));
+      const blockTimes=new Set(fullDay?times:blocks.filter(b=>b.appointment_time).map(b=>b.appointment_time.slice(0,5)));
+      const free=times.filter(t=>!occupiedTimes.has(t)&&!blockTimes.has(t)).length;
+      $("#statBooked").textContent=booked.length;
+      $("#statFree").textContent=free;
+      $("#statBlocked").textContent=blockedCount;
+      $("#statRevenue").textContent=money(booked.reduce((sum,a)=>sum+Number(a.services?.price||0),0));
+
+      const monthActive=monthAppointments.filter(a=>a.status==="confirmed"||a.status==="completed");
+      const monthCompleted=monthAppointments.filter(a=>a.status==="completed");
+      $("#statMonthForecast").textContent=money(monthActive.reduce((sum,a)=>sum+Number(a.services?.price||0),0));
+      $("#statMonthCompleted").textContent=money(monthCompleted.reduce((sum,a)=>sum+Number(a.services?.price||0),0));
+    }
+
+    async function updateStatus(id,status){
+      if(!live){appointments=appointments.map(a=>a.id===id?{...a,status}:a);render();toast("Alteração feita na demonstração.");return}
+      const {error}=await db.from("appointments").update({status}).eq("id",id);
+      if(error){toast("Não foi possível alterar.");return} await refresh();
+    }
+    async function blockSlot(time){
+      if(!live){blocks.push({id:`d${Date.now()}`,blocked_date:currentDate,appointment_time:`${time}:00`,reason:null});render();return}
+      const {error}=await db.from("blocked_slots").insert({blocked_date:currentDate,appointment_time:time,reason:"Bloqueado pela Thalita"});
+      if(error){toast(error.message);return} await refresh();
+    }
+    async function unblock(id){
+      if(!live){blocks=blocks.filter(b=>b.id!==id);render();return}
+      const {error}=await db.from("blocked_slots").delete().eq("id",id);
+      if(error){toast("Não foi possível liberar.");return} await refresh();
+    }
+    $("#blockDay").addEventListener("click",async()=>{
+      if(!live){blocks=[{id:"day-demo",blocked_date:currentDate,appointment_time:null,reason:"Dia bloqueado"}];render();return}
+      const {error}=await db.from("blocked_slots").insert({blocked_date:currentDate,appointment_time:null,reason:"Dia bloqueado"});
+      if(error){toast(error.message);return} await refresh();
+    });
+
+    $("#manualCreate").addEventListener("click",async()=>{
+      const service=$("#manualService").value,time=$("#manualTime").value,name=$("#manualName").value.trim();
+      const phone=$("#manualPhone").value.replace(/\D/g,""),notes=$("#manualNotes").value.trim();
+      if(!service||!time||name.length<2||phone.length<10){toast("Preencha serviço, horário, nome e WhatsApp.");return}
+      if(!live){toast("No modo demo, o novo agendamento não é gravado.");return}
+      $("#manualCreate").disabled=true;
+      const {error}=await db.rpc("create_appointment",{
+        p_service_code:service,p_date:currentDate,p_time:time,
+        p_client_name:name,p_client_phone:phone,p_notes:notes||null,
+        p_service_whatsapp_consent:false,p_marketing_whatsapp_consent:false
+      });
+      $("#manualCreate").disabled=false;
+      if(error){toast(error.message);return}
+      $("#manualName").value="";$("#manualPhone").value="";$("#manualNotes").value="";
+      await refresh();toast("Agendamento adicionado.");
+    });
+
+    $("#datePicker").addEventListener("change",()=>{currentDate=$("#datePicker").value;refresh()});
+    $("#prevDay").addEventListener("click",()=>{const d=parse(currentDate);d.setDate(d.getDate()-1);currentDate=iso(d);refresh()});
+    $("#nextDay").addEventListener("click",()=>{const d=parse(currentDate);d.setDate(d.getDate()+1);currentDate=iso(d);refresh()});
+
+
+    document.querySelectorAll(".repeat-option").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        repeatDays = btn.dataset.repeatDays==="custom" ? "custom" : Number(btn.dataset.repeatDays);
+        document.querySelectorAll(".repeat-option").forEach(b=>b.classList.toggle("active",b===btn));
+        $("#customUntil").classList.toggle("show",repeatDays==="custom");
+        if(repeatDays!=="custom") $("#blockUntilDate").value="";
+        updateBlockSummary();
+      });
+    });
+    $("#blockUntilDate").addEventListener("change",updateBlockSummary);
+    $("#cancelBlockModal").addEventListener("click",closeBlockModal);
+    $("#confirmBlockModal").addEventListener("click",applyRecurringBlock);
+    $("#blockModal").addEventListener("click",(e)=>{ if(e.target===$("#blockModal")) closeBlockModal(); });
+    document.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && $("#blockModal").classList.contains("show")) closeBlockModal(); });
+
+    checkSession();
+  </script>
+</body>
+</html>
